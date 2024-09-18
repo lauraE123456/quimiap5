@@ -177,5 +177,5 @@ footer {
     border-color: #4CAF50; /* Color del borde verde */
     border-radius: 5px; /* Bordes redondeados */
     font-size: 14px; /* Tamaño de fuente del botón */
-    transition: background-color 0.3s, transform 0.3s; 
+    transition: background-color 0.1s, transform 0.1s; 
 }

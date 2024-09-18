@@ -192,15 +192,10 @@ const Bienvenida = () => {
           <div className="carousel-inner">
             <div className="carousel-item active">
               <img src="/img/carrusel-images/supersale.jpg" className="d-block w-100" alt="Oferta 1" />
-              <div className="carousel-caption d-none d-md-block">
-                <Link to="#" className="btn btn-danger">Compra Aquí</Link>
-              </div>
+              
             </div>
             <div className="carousel-item">
               <img src="/img/carrusel-images/pngtree-sale-promotion-50-off-image_914144.png" className="d-block w-100" alt="Oferta 2" />
-              <div className="carousel-caption d-none d-md-block">
-                <Link to="#" className="btn btn-danger">Compra Aquí</Link>
-              </div>
             </div>
           </div>
           <button className="carousel-control-prev" type="button" data-bs-target="#mainCarousel" data-bs-slide="prev">

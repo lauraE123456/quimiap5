@@ -35,7 +35,6 @@
       "contrasena": "Samuel123*",
       "rol": "Cliente",
       "estado": "Activo"
-      
     },
     {
       "id": "141a",
@@ -65,6 +64,18 @@
         "ciudad": "bogota",
         "codigo_postal": "110111"
       }
+    },
+    {
+      "id": "bcdb",
+      "nombres": "Laura",
+      "apellidos": "Albarracin",
+      "telefono": "3244582033",
+      "correo_electronico": "lauraalbarracin553@gmail.com",
+      "tipo_doc": "ti",
+      "num_doc": "1111111111111111111111111111111",
+      "contrasena": "Lau123465@",
+      "rol": "domiciliario",
+      "estado": "Activo"
     }
   ],
   "Products": [

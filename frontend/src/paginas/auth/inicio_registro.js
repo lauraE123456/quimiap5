@@ -51,10 +51,33 @@ const Inicio_registro = () => {
     const handleRegisterSubmit = async (event) => {
         event.preventDefault();
     
-        if (phoneError || passwordError || passwordLengthError) {
+        // Verificar errores individuales y mostrar alertas
+        if (phoneError) {
             Swal.fire({
                 title: 'Error',
-                text: 'Por favor corrige los errores antes de enviar.',
+                text: 'Número de teléfono inválido.',
+                icon: 'error',
+                timer: 2000,
+                showConfirmButton: false
+            });
+            return;
+        }
+    
+        if (passwordError) {
+            Swal.fire({
+                title: 'Error',
+                text: 'La contraseña es incorrecta.',
+                icon: 'error',
+                timer: 2000,
+                showConfirmButton: false
+            });
+            return;
+        }
+    
+        if (passwordLengthError) {
+            Swal.fire({
+                title: 'Error',
+                text: 'La contraseña debe tener al menos 8 caracteres.',
                 icon: 'error',
                 timer: 2000,
                 showConfirmButton: false
@@ -63,7 +86,22 @@ const Inicio_registro = () => {
         }
     
         try {
-            // Primero, enviar la información del registro a la API existente
+            // Verificar si el correo ya está registrado
+            const checkResponse = await axios.get(`http://localhost:4000/Users?correo_electronico=${formData.correo_electronico}`);
+    
+            if (checkResponse.data.length > 0) {
+                // Si el correo ya está en la base de datos, mostrar la alerta
+                await Swal.fire({
+                    title: 'Cuenta ya existe',
+                    text: 'El correo electrónico ya está registrado. Por favor, inicia sesión.',
+                    icon: 'warning',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                return; // Detener el flujo aquí si la cuenta ya existe
+            }
+    
+            // Si el correo no existe, proceder con el registro
             const response = await axios.post("http://localhost:4000/Users", {
                 ...formData,
                 estado: "Pendiente" // Cambia el estado a pendiente
@@ -79,16 +117,13 @@ const Inicio_registro = () => {
             });
             window.location.href = '/';
     
-            // Ahora, enviar el correo de verificación al servidor de correos en el puerto 5000
+            // Enviar el correo de verificación
             const verificationResponse = await axios.post('http://localhost:5000/enviar-verificacion', {
-                correo_electronico: formData.correo_electronico, // Cambiar 'para' por 'correo_electronico'
-                id:response.data.id // Suponiendo que el id del usuario se devuelve en la respuesta
-                // Puedes incluir un token de verificación aquí
+                correo_electronico: formData.correo_electronico,
+                id: response.data.id
             });
     
             console.log('Correo de verificación enviado:', verificationResponse.data);
-    
-            
     
         } catch (error) {
             console.error("Error al enviar los datos:", error);
@@ -102,6 +137,7 @@ const Inicio_registro = () => {
             });
         }
     };
+    
     
 
     const handleChange = (event) => {
@@ -325,64 +361,80 @@ const Inicio_registro = () => {
 
     //solicitar correo en olvisdate tu contraseña:
     const handleForgotPasswordClick = async () => {
-    // Mostrar alerta para que el usuario ingrese su correo
-    const { value: email } = await Swal.fire({
-        title: 'Recuperar contraseña',
-        input: 'email',
-        inputLabel: 'Por favor ingresa tu correo electrónico para recuperar la contraseña:',
-        inputPlaceholder: 'correo@ejemplo.com',
-        showCancelButton: true,
-        confirmButtonText: 'Enviar',
-        cancelButtonText: 'Cancelar',
-        inputValidator: (value) => {
-            if (!value) {
-                return 'Debes ingresar un correo electrónico';
+        // Mostrar alerta para que el usuario ingrese su correo
+        const { value: email } = await Swal.fire({
+            title: 'Recuperar contraseña',
+            input: 'email',
+            inputLabel: '      Por favor ingresa tu correo electrónico para recuperar la contraseña:',
+            inputPlaceholder: 'correo@ejemplo.com',
+            showCancelButton: true,
+            confirmButtonText: 'Enviar',
+            confirmButtonColor: '#45A049',
+            cancelButtonText: 'Cancelar',
+            inputValidator: (value) => {
+                if (!value) {
+                    return 'Debes ingresar un correo electrónico';
+                }
             }
-        }
-    });
-
-    if (email) {
-        try {
-            // Enviar petición al backend con el correo ingresado
-            const response = await fetch('http://localhost:5000/enviar-restablecer-contrasena', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ correo_electronico: email })
-            });
-
-            if (response.ok) {
-                // Mostrar alerta de éxito sin redirigir
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Correo enviado',
-                    text: 'Se ha enviado un link de recuperación a tu correo electrónico.',
-                    timer: 1000, // Tiempo de cierre automático en milisegundos
-                    showConfirmButton: false // Ocultar botón de confirmación para no hacer clic
-                });
-            } else {
-                // Mostrar alerta de error sin redirigir
+        });
+    
+        if (email) {
+            try {
+                // Verificar si el correo existe en la base de datos
+                const checkResponse = await fetch(`http://localhost:4000/Users?correo_electronico=${email}`);
+                const data = await checkResponse.json();
+    
+                if (data.length > 0) {
+                    // Si el correo existe, enviar el correo de restablecimiento de contraseña
+                    const response = await fetch('http://localhost:5000/enviar-restablecer-contrasena', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ correo_electronico: email })
+                    });
+    
+                    if (response.ok) {
+                        // Mostrar alerta de éxito si se envió el correo correctamente
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Correo enviado',
+                            text: 'Se ha enviado un link de recuperación a tu correo electrónico.',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    } else {
+                        // Mostrar alerta de error si no se pudo enviar el correo
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Hubo un problema al enviar el correo. Inténtalo de nuevo.',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    }
+                } else {
+                    // Mostrar alerta si el correo no existe en la base de datos
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Usuario no encontrado',
+                        text: 'El correo electrónico no está registrado. Por favor, regístrate.',
+                        timer: 3000,
+                        showConfirmButton: false
+                    });
+                }
+            } catch (error) {
+                console.error("Error:", error);
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: 'Hubo un error al enviar el correo.',
-                    timer: 1000,
+                    text: 'Hubo un error al verificar el correo. Inténtalo de nuevo.',
+                    timer: 2000,
                     showConfirmButton: false
                 });
             }
-        } catch (error) {
-            console.error("Error:", error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Hubo un error al intentar enviar el correo.',
-                timer: 1000,
-                showConfirmButton: false
-            });
         }
-    }
-};
+    };
     return (
         <div className="registro-container">
             <Header productos={[]} />
